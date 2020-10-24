@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
 
 import filesize from 'filesize';
 
@@ -7,7 +6,13 @@ import Header from '../../components/Header';
 import FileList from '../../components/FileList';
 import Upload from '../../components/Upload';
 
-import { Container, Title, ImportFileContainer, Footer } from './styles';
+import {
+  Container,
+  Title,
+  ImportFileContainer,
+  Footer,
+  FeedbackMessage,
+} from './styles';
 
 import alert from '../../assets/alert.svg';
 import api from '../../services/api';
@@ -18,24 +23,60 @@ interface FileProps {
   readableSize: string;
 }
 
+interface FeedbackProps {
+  type: string;
+  message: string;
+}
+
 const Import: React.FC = () => {
+  const [feedbackMessage, setFeedbackMessage] = useState<FeedbackProps | null>(
+    null,
+  );
   const [uploadedFiles, setUploadedFiles] = useState<FileProps[]>([]);
-  const history = useHistory();
+
+  function clearFeedbackMessage(): void {
+    setTimeout(() => {
+      setFeedbackMessage(null);
+    }, 1000);
+  }
+
+  function showFeedbackMessage(type: string, message: string): void {
+    setFeedbackMessage({
+      type,
+      message,
+    });
+
+    clearFeedbackMessage();
+  }
 
   async function handleUpload(): Promise<void> {
-    // const data = new FormData();
+    const data = new FormData();
 
-    // TODO
+    uploadedFiles.map(file => {
+      return data.append('file', file.file);
+    });
 
     try {
-      // await api.post('/transactions/import', data);
-    } catch (err) {
-      // console.log(err.response.error);
+      await api.post('/transactions/import', data);
+
+      showFeedbackMessage('success', 'Arquivo importado com sucesso!');
+      setUploadedFiles([]);
+    } catch {
+      showFeedbackMessage(
+        'error',
+        'Erro ao importar arquivo, por favor, tente novamente.',
+      );
     }
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    const uploadedFile = files.map(file => ({
+      file,
+      name: file.name,
+      readableSize: filesize(file.size),
+    }));
+
+    setUploadedFiles(uploadedFile);
   }
 
   return (
@@ -56,6 +97,12 @@ const Import: React.FC = () => {
               Enviar
             </button>
           </Footer>
+
+          {feedbackMessage && (
+            <FeedbackMessage className={feedbackMessage.type}>
+              {feedbackMessage.message}
+            </FeedbackMessage>
+          )}
         </ImportFileContainer>
       </Container>
     </>

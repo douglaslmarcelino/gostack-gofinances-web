@@ -54,3 +54,19 @@ export const Footer = styled.section`
     }
   }
 `;
+
+export const FeedbackMessage = styled.span`
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 25px;
+  font-size: 14px;
+
+  &.success {
+    color: #12a454;
+  }
+
+  &.error {
+    color: #e83f5b;
+  }
+`;
